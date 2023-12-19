@@ -20,7 +20,9 @@ library(randomForest)
 
 
 ## Loading Dataset
-```
+```{r}
+admisi = read.csv('admisi.csv', header = TRUE, sep = ";")
+profiling = read.csv('profiling.csv', header = TRUE, sep = ";")
 
 ```
 
