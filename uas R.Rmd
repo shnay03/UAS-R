@@ -30,28 +30,72 @@ newdata
 ```
 
 
+sum(is.na(newdata$Rangking_Uni_Asal))
+sum(is.na(newdata$IPK))
+sum(is.na(newdata$GRE))
+sum(is.na(newdata$TOEFL))
+sum(is.na(newdata$MOT_LETTER))
+sum(is.na(newdata$REKOM_LETTER))
+sum(is.na(newdata$USIA))
+sum(is.na(newdata$RISET))
+sum(is.na(newdata$JENIS_KEL))
+
+str(newdata)
+
+unique(newdata)
+unique(newdata$USIA)
+
+newdata$Ranking_Uni_Asal [is.na(newdata$REKOM_LETTER)] = mean(newdata$Ranking_Uni_Asal, na.rm = TRUE)
+newdata$IPK[is.na(newdata$IPK)] = mean(newdata$IPK, na.rm = TRUE)
+newdata$GRE[is.na(newdata$GRE)] = mean(newdata$GRE, na.rm = TRUE)
+newdata$TOEFL[is.na(newdata$TOEFL)] = mean(newdata$TOEFL, na.rm = TRUE)
+newdata$MOT_LETTER[is.na(newdata$MOT_LETTER)] = mean(newdata$MOT_LETTER, na.rm = TRUE)
+newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean(newdata$REKOM_LETTER, na.rm = TRUE)
+newdata$USIA[is.na(newdata$USIA)] = mean(newdata$USIA, na.rm = TRUE)
+
+
+
 ## DATA PREPROCESSING
 ```{r}
 
-# Mengubah beberapa feature char menjadi numerik
-newdata$IPK = as.numeric(newdata$IPK)
-newdata$MOT_LETTER = as.numeric(newdata$MOT_LETTER)
-newdata$REKOM_LETTER = as.numeric(newdata$REKOM_LETTER)
+# Menghitung modus
+modus_jenkel = names(sort(table(newdata$JENIS_KEL), decreasing = TRUE)[1])
+modus_riset = names(sort(table(newdata$RISET), decreasing = TRUE)[1])
+modus_lulus = names(sort(table(newdata$LULUS), decreasing = TRUE)[1])
+
+# Mengganti nilai NA dengan modus
+newdata$JENIS_KEL[is.na(newdata$JENIS_KEL)] = modus_jenkel
+newdata$RISET[is.na(newdata$RISET)] = modus_riset
+newdata$LULUS[is.na(newdata$LULUS)] = modus_lulus
+
+# Transformasi faktor
+newdata$JENIS_KEL = as.factor(newdata$JENIS_KEL)
+newdata$LULUS = factor(newdata$LULUS, levels = c(1, 0), labels = c('Lulus', 'Tidak Lulus'))
+newdata$RISET = as.factor(newdata$RISET)
+
+# Mengganti nilai NA pada nilai non-numerik
+newdata$IPK = as.numeric(ifelse(grepl("^\\d+\\.?\\d*$", newdata$IPK), newdata$IPK, NA))
+newdata$MOT_LETTER = as.numeric(ifelse(grepl("^\\d+\\.?\\d*$", newdata$MOT_LETTER), newdata$MOT_LETTER, NA))
+newdata$REKOM_LETTER = as.numeric(ifelse(grepl("^\\d+\\.?\\d*$", newdata$REKOM_LETTER), newdata$REKOM_LETTER, NA))
+
+# Menghitung mean
+mean_ipk = mean(as.numeric(newdata$IPK), na.rm = TRUE)
+mean_motl = mean(as.numeric(newdata$MOT_LETTER), na.rm = TRUE)
+mean_koml = mean(as.numeric(newdata$REKOM_LETTER), na.rm = TRUE)
 
 # Mengganti nilai NA dengan mean
-newdata_noNA = na.omit(newdata)
-newdata$USIA[is.na(newdata$USIA)] = mean(newdata_noNA$USIA)
-newdata$Ranking_Uni_Asal[is.na(newdata$Ranking_Uni_Asal)] = mean(newdata_noNA$Ranking_Uni_Asal)
-newdata$IPK[is.na(newdata$IPK)] = mean(newdata_noNA$IPK)
-newdata$GRE[is.na(newdata$GRE)] = mean(newdata_noNA$GRE)
-newdata$TOEFL[is.na(newdata$TOEFL)] = mean(newdata_noNA$TOEFL)
-newdata$MOT_LETTER[is.na(newdata$MOT_LETTER)] = mean(newdata_noNA$MOT_LETTER)
-newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean(newdata_noNA$REKOM_LETTER)
+newdata$IPK[is.na(newdata$IPK)] = mean_ipk
+newdata$MOT_LETTER[is.na(newdata$MOT_LETTER)] = mean_motl
+newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean_koml
 
-newdata = newdata %>%
-  mutate(JENIS_KEL = factor(JENIS_KEL, levels = c('P', 'L'), labels = c('Perempuan', 'Laki-Laki')),
-         LULUS = factor(LULUS, levels = c(1, 0), labels = c('Lulus', 'Tidak Lulus')))
-newdata$RISET = as.factor(newdata$RISET)
+# Mengganti NA pada numerik dengan mean
+numeric_columns = c("Ranking_Uni_Asal", "IPK", "GRE", "TOEFL", "MOT_LETTER", "REKOM_LETTER", "USIA")
+
+for (col in numeric_columns) {
+  newdata[, col][is.na(newdata[, col])] = mean(newdata[, col], na.rm = TRUE)
+}
+
+
 str(newdata)
 ```
 
