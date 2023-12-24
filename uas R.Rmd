@@ -29,31 +29,7 @@ newdata = merge(profiling, admisi, by = "ID")
 newdata
 ```
 
-
-sum(is.na(newdata$Rangking_Uni_Asal))
 sum(is.na(newdata$IPK))
-sum(is.na(newdata$GRE))
-sum(is.na(newdata$TOEFL))
-sum(is.na(newdata$MOT_LETTER))
-sum(is.na(newdata$REKOM_LETTER))
-sum(is.na(newdata$USIA))
-sum(is.na(newdata$RISET))
-sum(is.na(newdata$JENIS_KEL))
-
-str(newdata)
-
-unique(newdata)
-unique(newdata$USIA)
-
-newdata$Ranking_Uni_Asal [is.na(newdata$REKOM_LETTER)] = mean(newdata$Ranking_Uni_Asal, na.rm = TRUE)
-newdata$IPK[is.na(newdata$IPK)] = mean(newdata$IPK, na.rm = TRUE)
-newdata$GRE[is.na(newdata$GRE)] = mean(newdata$GRE, na.rm = TRUE)
-newdata$TOEFL[is.na(newdata$TOEFL)] = mean(newdata$TOEFL, na.rm = TRUE)
-newdata$MOT_LETTER[is.na(newdata$MOT_LETTER)] = mean(newdata$MOT_LETTER, na.rm = TRUE)
-newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean(newdata$REKOM_LETTER, na.rm = TRUE)
-newdata$USIA[is.na(newdata$USIA)] = mean(newdata$USIA, na.rm = TRUE)
-
-
 
 ## DATA PREPROCESSING
 ```{r}
@@ -73,28 +49,25 @@ newdata$JENIS_KEL = as.factor(newdata$JENIS_KEL)
 newdata$LULUS = factor(newdata$LULUS, levels = c(1, 0), labels = c('Lulus', 'Tidak Lulus'))
 newdata$RISET = as.factor(newdata$RISET)
 
+# Mengganti koma (,) dengan titik (.) pada kolom "IPK"
+newdata$IPK = gsub(",", ".", newdata$IPK)
+newdata$MOT_LETTER = gsub(",", ".", newdata$MOT_LETTER)
+newdata$REKOM_LETTER <- gsub(",", ".", newdata$REKOM_LETTER)
+
 # Mengganti nilai NA pada nilai non-numerik
-newdata$IPK = as.numeric(ifelse(grepl("^\\d+\\.?\\d*$", newdata$IPK), newdata$IPK, NA))
-newdata$MOT_LETTER = as.numeric(ifelse(grepl("^\\d+\\.?\\d*$", newdata$MOT_LETTER), newdata$MOT_LETTER, NA))
-newdata$REKOM_LETTER = as.numeric(ifelse(grepl("^\\d+\\.?\\d*$", newdata$REKOM_LETTER), newdata$REKOM_LETTER, NA))
+newdata$IPK = as.numeric(newdata$IPK)
+newdata$MOT_LETTER = as.numeric(newdata$MOT_LETTER)
+newdata$REKOM_LETTER = as.numeric(newdata$REKOM_LETTER)
 
 # Menghitung mean
-mean_ipk = mean(as.numeric(newdata$IPK), na.rm = TRUE)
-mean_motl = mean(as.numeric(newdata$MOT_LETTER), na.rm = TRUE)
-mean_koml = mean(as.numeric(newdata$REKOM_LETTER), na.rm = TRUE)
+mean_rank = mean(newdata$Ranking_Uni_Asal, na.rm = TRUE)
+mean_motl = mean(newdata$MOT_LETTER, na.rm = TRUE)
+mean_koml = mean(newdata$REKOM_LETTER, na.rm = TRUE)
 
 # Mengganti nilai NA dengan mean
-newdata$IPK[is.na(newdata$IPK)] = mean_ipk
+newdata$Ranking_Uni_Asal[is.na(newdata$Ranking_Uni_Asal)] = mean_rank
 newdata$MOT_LETTER[is.na(newdata$MOT_LETTER)] = mean_motl
 newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean_koml
-
-# Mengganti NA pada numerik dengan mean
-numeric_columns = c("Ranking_Uni_Asal", "IPK", "GRE", "TOEFL", "MOT_LETTER", "REKOM_LETTER", "USIA")
-
-for (col in numeric_columns) {
-  newdata[, col][is.na(newdata[, col])] = mean(newdata[, col], na.rm = TRUE)
-}
-
 
 str(newdata)
 ```
