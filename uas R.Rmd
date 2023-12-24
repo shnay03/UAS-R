@@ -5,7 +5,7 @@ date: "2023-12-19"
 output: html_document
 ---
 
-## Library
+## IMPORT LIBRARY
 ```{r}
 library(dplyr)
 library(ggplot2)
@@ -19,7 +19,7 @@ library(randomForest)
 ```
 
 
-## Loading Dataset
+## LOADING DATASET
 ```{r}
 admisi = read.csv('admisi.csv', header = TRUE, sep = ";")
 profiling = read.csv('profiling.csv', header = TRUE, sep = ";")
@@ -100,4 +100,19 @@ for (col in names(clean_newdata)) {
 }
 
 ```
+
+## FEATURE SELECTION
+```{r}
+
+control = trainControl(method="repeatedcv", number=10, repeats=3)
+model = train(LULUS ~ ., data = clean_newdata[, setdiff(names(clean_newdata), "NAMA")], method = "lvq", preProcess = "scale", trControl = control)
+
+# Estimasi Feature yang Penting
+importance = varImp(model, scale=FALSE)
+
+# plot importance
+plot(importance)
+
+```
+
 
