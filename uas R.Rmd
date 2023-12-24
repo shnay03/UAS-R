@@ -72,12 +72,32 @@ newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean_koml
 str(newdata)
 ```
 
-## Including Plots
+## MENGECEK DAN HAPUS OUTLIER
 
-You can also embed plots, for example:
+```{r}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# Loop untuk menampilkan boxplot satu per satu untuk variabel numerik
+for (col in names(newdata)) {
+  if (is.numeric(newdata[[col]])) {
+    boxplot(newdata[[col]], main = col)
+  }
+}
+
+# Menghapus Outliers
+IQR_ipk = IQR(newdata$IPK)
+upfen_ipk = quantile(newdata$IPK, 0.75) + 1.5 * IQR_ipk
+
+IQR_koml = IQR(newdata$REKOM_LETTER)
+lowfen_koml = quantile(newdata$REKOM_LETTER, 0.25) - 1.5 * IQR_koml
+
+clean_newdata = subset(newdata, newdata$IPK <= upfen_ipk & newdata$REKOM_LETTER >= lowfen_koml)
+
+# Mengecek apakah masih terdapat outliers
+for (col in names(clean_newdata)) {
+  if (is.numeric(clean_newdata[[col]])) {
+    boxplot(clean_newdata[[col]], main = col)
+  }
+}
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
