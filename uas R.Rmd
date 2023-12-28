@@ -101,6 +101,16 @@ for (col in names(clean_newdata)) {
 
 ```
 
+clean_newdata$REKOM_LETTER = sqrt(clean_newdata$REKOM_LETTER)
+
+describe(clean_newdata)
+for (col in names(clean_newdata)) {
+  if (is.numeric(clean_newdata[[col]])) {
+    hist(clean_newdata[[col]], main = col, xlab = "Value", col = "lightblue", border = "black")
+  }
+}
+
+
 ## FEATURE SELECTION
 ```{r}
 
