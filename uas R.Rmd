@@ -125,7 +125,7 @@ plot(importance)
 
 ```
 
-## MODELLING
+## SPLIT DATA
 ```{r}
 # Subset data dengan feature yang dipilih
 selected_features <- c("IPK", "RISET", "GRE", "TOEFL", "REKOM_LETTER", "MOT_LETTER", "JENIS_KEL", "USIA")
@@ -139,6 +139,12 @@ set.seed(123)  # for reproducibility
 train_indices <- createDataPartition(selected_data$LULUS, p = 0.8, list = FALSE)
 train_data <- selected_data[train_indices, ]
 test_data <- selected_data[-train_indices, ]
+
+```
+
+
+## Model 1 (RF)
+```{r}
 
 # Model Training
 rf_model <- randomForest(LULUS ~ ., data = train_data)
@@ -158,3 +164,7 @@ print(paste("Precision:", precision))
 
 ```
 
+## MODEL 2 (LM)
+```{r}
+
+```
