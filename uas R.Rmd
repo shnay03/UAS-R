@@ -127,6 +127,34 @@ plot(importance)
 
 ## MODELLING
 ```{r}
+# Subset data dengan feature yang dipilih
+selected_features <- c("IPK", "RISET", "GRE", "TOEFL", "REKOM_LETTER", "MOT_LETTER", "JENIS_KEL", "USIA")
+selected_data <- clean_newdata[, c("LULUS", selected_features)]
+
+# Convert categorical variables to factors
+selected_data$JENIS_KEL <- as.factor(selected_data$JENIS_KEL)
+
+# Split the data into training and testing sets
+set.seed(123)  # for reproducibility
+train_indices <- createDataPartition(selected_data$LULUS, p = 0.8, list = FALSE)
+train_data <- selected_data[train_indices, ]
+test_data <- selected_data[-train_indices, ]
+
+# Model Training
+rf_model <- randomForest(LULUS ~ ., data = train_data)
+
+# Model Prediction on the test set
+predictions <- predict(rf_model, newdata = test_data)
+
+# Evaluate the model
+conf_matrix <- confusionMatrix(predictions, test_data$LULUS)
+accuracy <- conf_matrix$overall["Accuracy"]
+precision <- conf_matrix$byClass[["Pos Pred Value"]]
+
+# Display evaluation metrics
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+
 
 ```
 
