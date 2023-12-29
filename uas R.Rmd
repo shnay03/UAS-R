@@ -16,6 +16,7 @@ library(moments) #Untuk menghitung Pearson Kurtosis, Geary Skewness
 library(outliers) #Untuk mendeteksi outliers
 library(Metrics)
 library(randomForest)
+library(e1071)
 ```
 
 
@@ -166,5 +167,18 @@ print(paste("Precision:", precision))
 
 ## MODEL 2 (LM)
 ```{r}
+# Model Training - Support Vector Machine (SVM)
+svm_model <- svm(LULUS ~ ., data = train_data)
 
+# Model Prediction on the test set
+predictions_svm <- predict(svm_model, newdata = test_data)
+
+# Evaluate the model
+conf_matrix_svm <- confusionMatrix(predictions_svm, test_data$LULUS)
+accuracy_svm <- conf_matrix_svm$overall["Accuracy"]
+precision_svm <- conf_matrix_svm$byClass[["Pos Pred Value"]]
+
+# Display evaluation metrics for SVM
+print(paste("SVM Accuracy:", accuracy_svm))
+print(paste("SVM Precision:",precision_svm))
 ```
