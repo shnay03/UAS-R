@@ -17,6 +17,7 @@ library(outliers) #Untuk mendeteksi outliers
 library(Metrics)
 library(randomForest)
 library(e1071)
+library(janitor)
 ```
 
 
@@ -30,9 +31,8 @@ newdata = merge(profiling, admisi, by = "ID")
 newdata
 ```
 
-sum(is.na(newdata$IPK))
 
-## DATA PREPROCESSING
+## DATA PREPROCESSING 1: HANDLING MISSING VALUE
 ```{r}
 
 # Menghitung modus
@@ -71,27 +71,43 @@ newdata$MOT_LETTER[is.na(newdata$MOT_LETTER)] = mean_motl
 newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean_koml
 
 str(newdata)
+
 ```
 
-## MENGECEK DAN HAPUS OUTLIER
+
+## DATA PREPROCESSING 2: HANDLING DUPLICATED DATA
+```{R}
+
+# Cek Data Duplikat
+cek = get_dupes(newdata)
+cek
+
+# Mempertahankan satu baris dari setiap kelompok duplikat
+newdata_unique = distinct(newdata, .keep_all = TRUE)
+
+```
+
+
+## DATA PREPROCESSING 3: HANDLING OUTLIER
 
 ```{r}
 
 # Loop untuk menampilkan boxplot satu per satu untuk variabel numerik
-for (col in names(newdata)) {
-  if (is.numeric(newdata[[col]])) {
-    boxplot(newdata[[col]], main = col)
+for (col in names(newdata_unique)) {
+  if (is.numeric(newdata_unique[[col]])) {
+    boxplot(newdata_unique[[col]], main = col)
   }
 }
 
 # Menghapus Outliers
-IQR_ipk = IQR(newdata$IPK)
-upfen_ipk = quantile(newdata$IPK, 0.75) + 1.5 * IQR_ipk
+IQR_ipk = IQR(newdata_unique$IPK)
+upfen_ipk = quantile(newdata_unique$IPK, 0.75) + 1.5 * IQR_ipk
 
-IQR_koml = IQR(newdata$REKOM_LETTER)
-lowfen_koml = quantile(newdata$REKOM_LETTER, 0.25) - 1.5 * IQR_koml
+IQR_koml = IQR(newdata_unique$REKOM_LETTER)
+lowfen_koml = quantile(newdata_unique$REKOM_LETTER, 0.25) - 1.5 * IQR_koml
 
-clean_newdata = subset(newdata, newdata$IPK <= upfen_ipk & newdata$REKOM_LETTER >= lowfen_koml)
+clean_newdata = subset(newdata_unique, newdata_unique$IPK <= upfen_ipk 
+                       & newdata_unique$REKOM_LETTER >= lowfen_koml)
 
 # Mengecek apakah masih terdapat outliers
 for (col in names(clean_newdata)) {
@@ -100,16 +116,10 @@ for (col in names(clean_newdata)) {
   }
 }
 
+
+
 ```
 
-clean_newdata$REKOM_LETTER = sqrt(clean_newdata$REKOM_LETTER)
-
-describe(clean_newdata)
-for (col in names(clean_newdata)) {
-  if (is.numeric(clean_newdata[[col]])) {
-    hist(clean_newdata[[col]], main = col, xlab = "Value", col = "lightblue", border = "black")
-  }
-}
 
 
 ## FEATURE SELECTION
@@ -165,7 +175,7 @@ print(paste("Precision:", precision))
 
 ```
 
-## MODEL 2 (LM)
+## MODEL 2 (SVM)
 ```{r}
 # Model Training - Support Vector Machine (SVM)
 svm_model <- svm(LULUS ~ ., data = train_data)
@@ -180,5 +190,5 @@ precision_svm <- conf_matrix_svm$byClass[["Pos Pred Value"]]
 
 # Display evaluation metrics for SVM
 print(paste("SVM Accuracy:", accuracy_svm))
-print(paste("SVM Precision:",precision_svm))
+print(paste("SVM Precision:", precision_svm))
 ```
