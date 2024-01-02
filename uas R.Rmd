@@ -220,7 +220,7 @@ print(paste("Logistics Regression  Accuracy:", accuracy_lr))
 print(paste("Logistics Regression Precision:", precision_lr))
 ```
 
-##shiny sementara
+# #shiny sementara
 ```{r}
 ui = fluidPage(
   titlePanel("Judul"),
