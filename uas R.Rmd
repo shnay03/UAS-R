@@ -366,7 +366,7 @@ print(paste("Decision Tree Accuracy:", accuracy_dt))
 print(paste("Decision Tree Precision:", precision_dt))
 
 # Create ROC curve
-roc_curve_dt <- multiclass.roc(test_data$LULUS, as.numeric(predictions_dt))
+roc_curve_dt <- roc(test_data$LULUS, as.numeric(predictions_dt))
 auc_value_dt <- auc(roc_curve_dt)
 
 # Display AUC for Decision Tree
@@ -379,44 +379,54 @@ plot(roc_curve_dt, main = "ROC Curve for Decision Tree", col = "blue", lwd = 2)
 ## MODEL 6 : KNN
 ```{r}
 # Preprocess the data
-preProcValues <- preProcess(train_data_binary, method = c("center", "scale"))
-trainTransformed <- predict(preProcValues, train_data_binary)
-testTransformed <- predict(preProcValues, test_data_binary)
+preProcValues <- preProcess(train_data, method = c("center", "scale"))
+trainTransformed <- predict(preProcValues, train_data)
+testTransformed <- predict(preProcValues, test_data)
 
 # Train the model
+preProcValues <- preProcess(train_data, method = c("center", "scale"))
+trainTransformed <- predict(preProcValues, train_data)
+testTransformed <- predict(preProcValues, test_data)
+
 knnModel <- train(
-  LULUS ~ ., 
-  data = trainTransformed, 
-  method = "knn", 
-  trControl = trainControl(method = "cv"), 
-  tuneGrid = data.frame(k = c(3, 5, 7)),
-  metric = "Precision"  # Specify precision as the metric for tuning
-)
+		     LULUS ~ ., 
+		     data = trainTransformed, 
+		     method = "knn", 
+		     trControl = trainControl(method = "cv"), 
+		     tuneGrid = expand.grid(k=1:100))
 
-# Extract best k from the tuned model
-best_k <- knnModel$bestTune$k
-
-# Train K-Nearest Neighbors with the best k
-best_model <- knn3(
-  LULUS ~ .,
-  data = trainTransformed,
-  k = best_k
-)
+best_model<- knn3(
+                  LULUS ~ .,
+                  data = trainTransformed,
+                  k = knnModel$bestTune$k
+                 )
 
 # Make predictions on the test set
-predictions <- predict(best_model, testTransformed, type = "prob")
+predictions_knn <- predict(best_model, testTransformed,type = "prob")
+
+# Calculate confusion matrix
+conf_matrix_knn <- confusionMatrix(predictions, testTransformed$LULUS)
+accuracy_knn <- conf_matrix_knn$overall["Accuracy"]
+precision_knn <- conf_matrix_knn$byClass[["Pos Pred Value"]]
+
+# Display evaluation metrics for k-nearest-neighbors
+print(paste("K-Nearest Neighbors Accuracy:", accuracy_knn))
+print(paste("K-Nearest Neighbors Precision:", precision_knn))
 
 # Extract probability of the positive class for AUC calculation
-probabilities_knn <- predictions[, 2]
+probabilities_knn <- as.numeric(predictions_knn[, "Lulus"])
 
 # Calculate ROC curve
-roc_curve_knn <- roc(test_data_binary$LULUS, probabilities_knn)
+roc_curve_knn <- roc(testTransformed$LULUS, probabilities_knn)
 
 # Calculate AUC
 auc_value_knn <- auc(roc_curve_knn)
 
 # Display evaluation metrics for K-Nearest Neighbors
 print(paste("K-Nearest Neighbors AUC:", auc_value_knn))
+
+# Plot ROC curve
+plot(roc_curve_knn, main = "ROC Curve for k-nearest-neighbors", col = "blue", lwd = 2)
 
 ```
 
