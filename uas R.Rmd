@@ -219,7 +219,6 @@ test_data <- selected_data[-train_indices, ]
 
 ## Model 1 (RF)
 ```{r}
-
 # Model Training
 rf_model <- randomForest(LULUS ~ ., data = train_data)
 
@@ -275,34 +274,39 @@ plot(roc_curve_svm, main = "ROC Curve for SVM", col = "blue", lwd = 2)
 
 ## Model 3 (LR)
 ```{r}
-
 # Convert "Lulus" to 1 and "Tidak Lulus" to 0
 train_data_lr <- train_data %>%
   mutate(LULUS = ifelse(LULUS == "Lulus", 1, 0))
 
 # Model Training - Logistic Regression (LR)
-lr_model = glm(LULUS ~ ., data = train_data_lr, family = "binomial")
+lr_model <- glm(LULUS ~ ., data = train_data_lr, family = "binomial")
 
 # Model Prediction on the test set
-predictions_lr = predict(lr_model, newdata = test_data, type = "response")
+predictions_lr <- predict(lr_model, newdata = test_data, type = "response")
 
 # Convert predicted probabilities to class labels
-predicted_classes_lr = ifelse(predictions_lr > 0.5, "Lulus", "Tidak Lulus")
+predicted_classes_lr <- ifelse(predictions_lr > 0.5, "Lulus", "Tidak Lulus")
 
 # Evaluate the model
 conf_matrix_lr <- confusionMatrix(factor(predicted_classes_lr), test_data$LULUS)
-accuracy_lr = conf_matrix_lr$overall["Accuracy"]
-precision_lr = conf_matrix_lr$byClass[["Pos Pred Value"]]
+accuracy_lr <- conf_matrix_lr$overall["Accuracy"]
+precision_lr <- conf_matrix_lr$byClass[["Pos Pred Value"]]
+
+# Calculate AUC and plot ROC
+roc_curve_lr <- roc(test_data$LULUS, predictions_lr)
+auc_value_lr <- auc(roc_curve_lr)
 
 # Display evaluation metrics for LR
 print(paste("LR Accuracy:", accuracy_lr))
 print(paste("LR Precision:", precision_lr))
+print(paste("LR AUC:", auc_value_lr))
 
-
+# Plot ROC curve
+plot(roc_curve_lr, main = "ROC Curve for Logistic Regression", col = "blue", lwd = 2)
 ```
+
 ## Model 4 (GBM)
 ```{r}
-
 # Convert "Lulus" to 1 and "Tidak Lulus" to 0
 train_data_gbm <- train_data %>%
   mutate(LULUS = ifelse(LULUS == "Lulus", 1, 0))
@@ -311,19 +315,30 @@ train_data_gbm <- train_data %>%
 gbm_model <- gbm(LULUS ~ ., data = train_data_gbm, distribution = "bernoulli", n.trees = 100, interaction.depth = 3)
 
 # Model Prediction on the test set
-predictions_gbm <- predict(gbm_model, newdata = test_data, type = "response", n.trees = 100)
+predictions_gbm <- predict(gbm_model, newdata = test_data, n.trees = 100)
+
+# Convert predicted values to probabilities
+probabilities_gbm <- 1 / (1 + exp(-predictions_gbm))
 
 # Convert predicted probabilities to class labels
-predicted_classes_gbm <- ifelse(predictions_gbm > 0.5, "Lulus", "Tidak Lulus")
+predicted_classes_gbm <- ifelse(probabilities_gbm > 0.5, "Lulus", "Tidak Lulus")
 
 # Evaluate the model
 conf_matrix_gbm <- confusionMatrix(factor(predicted_classes_gbm), test_data$LULUS)
 accuracy_gbm <- conf_matrix_gbm$overall["Accuracy"]
 precision_gbm <- conf_matrix_gbm$byClass[["Pos Pred Value"]]
 
+# Calculate AUC and plot ROC
+roc_curve_gbm <- roc(test_data$LULUS, probabilities_gbm)
+auc_value_gbm <- auc(roc_curve_gbm)
+
 # Display evaluation metrics for GBM
 print(paste("GBM Accuracy:", accuracy_gbm))
 print(paste("GBM Precision:", precision_gbm))
+print(paste("GBM AUC:", auc_value_gbm))
+
+# Plot ROC curve
+plot(roc_curve_gbm, main = "ROC Curve for Gradient Boosting Machine", col = "blue", lwd = 2)
 ```
 
 ## MODEL 5 (DT)
@@ -334,7 +349,6 @@ train_data_dt <- train_data %>%
 
 # Model Training - Decision Tree (DT)
 dt_model <- rpart(LULUS ~ ., data = train_data_dt, method = "class")
-rpart.plot(dt_model, extra=106)
 
 # Model Prediction on the test set
 predictions_dt <- predict(dt_model, newdata = test_data, type = "class")
@@ -350,6 +364,16 @@ precision_dt <- conf_matrix_dt$byClass[["Pos Pred Value"]]
 # Display evaluation metrics for Decision Tree
 print(paste("Decision Tree Accuracy:", accuracy_dt))
 print(paste("Decision Tree Precision:", precision_dt))
+
+# Create ROC curve
+roc_curve_dt <- multiclass.roc(test_data$LULUS, as.numeric(predictions_dt))
+auc_value_dt <- auc(roc_curve_dt)
+
+# Display AUC for Decision Tree
+print(paste("Decision Tree AUC:", auc_value_dt))
+
+# Plot ROC curve
+plot(roc_curve_dt, main = "ROC Curve for Decision Tree", col = "blue", lwd = 2)
 ```
 
 # #shiny sementara
