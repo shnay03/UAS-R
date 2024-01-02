@@ -24,110 +24,167 @@ library(shiny)
 
 ## LOADING DATASET
 ```{r}
-admisi = read.csv('admisi.csv', header = TRUE, sep = ";")
-profiling = read.csv('profiling.csv', header = TRUE, sep = ";")
 
-# Menggabungkan dataset berdasarkan kolom ID
-newdata = merge(profiling, admisi, by = "ID")
-newdata
+admisi = read.csv('admisi.csv', header = TRUE, sep = ";")
+admisi
+profiling = read.csv('profiling.csv', header = TRUE, sep = ";")
+profiling
+
 ```
+
 
 
 ## DATA PREPROCESSING 1: HANDLING MISSING VALUE
 ```{r}
 
+cek_NA_GRE = sum(is.na(admisi$GRE))
+cek_NA_TOEFL = sum(is.na(admisi$TOEFL))
+cek_NA_MLETTER = sum(is.na(admisi$MOT_LETTER))
+cek_NA_RLETTER = sum(is.na(admisi$REKOM_LETTER))
+cek_NA_LULUS = sum(is.na(admisi$LULUS))
+cek_NA_USIA = sum(is.na(profiling$USIA))
+cek_NA_JENKEL = sum(is.na(profiling$JENIS_KEL))
+cek_NA_RUA = sum(is.na(profiling$Raking_Uni_Asal))
+cek_NA_IPK = sum(is.na(profiling$IPK))
+cek_NA_RISET = sum(is.na(profiling$RISET))
+
 # Menghitung modus
-modus_jenkel = names(sort(table(newdata$JENIS_KEL), decreasing = TRUE)[1])
-modus_riset = names(sort(table(newdata$RISET), decreasing = TRUE)[1])
-modus_lulus = names(sort(table(newdata$LULUS), decreasing = TRUE)[1])
+modus_jenkel = names(sort(table(profiling$JENIS_KEL), decreasing = TRUE)[1])
+modus_riset = names(sort(table(profiling$RISET), decreasing = TRUE)[1])
+modus_lulus = names(sort(table(admisi$LULUS), decreasing = TRUE)[1])
 
 # Mengganti nilai NA dengan modus
-newdata$JENIS_KEL[is.na(newdata$JENIS_KEL)] = modus_jenkel
-newdata$RISET[is.na(newdata$RISET)] = modus_riset
-newdata$LULUS[is.na(newdata$LULUS)] = modus_lulus
+profiling$JENIS_KEL[is.na(profiling$JENIS_KEL)] = modus_jenkel
+profiling$RISET[is.na(profiling$RISET)] = modus_riset
+admisi$LULUS[is.na(admisi$LULUS)] = modus_lulus
 
 # Transformasi faktor
-newdata$JENIS_KEL = as.factor(newdata$JENIS_KEL)
-newdata$LULUS = factor(newdata$LULUS, levels = c(1, 0), labels = c('Lulus', 'Tidak Lulus'))
-newdata$RISET = as.factor(newdata$RISET)
+profiling$JENIS_KEL = as.factor(profiling$JENIS_KEL)
+admisi$LULUS = factor(admisi$LULUS, levels = c(1, 0), labels = c('Lulus', 'Tidak Lulus'))
+profiling$RISET = as.factor(profiling$RISET)
 
 # Mengganti koma (,) dengan titik (.) pada kolom "IPK"
-newdata$IPK = gsub(",", ".", newdata$IPK)
-newdata$MOT_LETTER = gsub(",", ".", newdata$MOT_LETTER)
-newdata$REKOM_LETTER <- gsub(",", ".", newdata$REKOM_LETTER)
+profiling$IPK = gsub(",", ".", profiling$IPK)
+admisi$MOT_LETTER = gsub(",", ".", admisi$MOT_LETTER)
+admisi$REKOM_LETTER <- gsub(",", ".", admisi$REKOM_LETTER)
 
 # Mengganti nilai NA pada nilai non-numerik
-newdata$IPK = as.numeric(newdata$IPK)
-newdata$MOT_LETTER = as.numeric(newdata$MOT_LETTER)
-newdata$REKOM_LETTER = as.numeric(newdata$REKOM_LETTER)
+profiling$IPK = as.numeric(profiling$IPK)
+admisi$MOT_LETTER = as.numeric(admisi$MOT_LETTER)
+admisi$REKOM_LETTER = as.numeric(admisi$REKOM_LETTER)
 
 # Menghitung mean
-mean_rank = mean(newdata$Ranking_Uni_Asal, na.rm = TRUE)
-mean_motl = mean(newdata$MOT_LETTER, na.rm = TRUE)
-mean_koml = mean(newdata$REKOM_LETTER, na.rm = TRUE)
+mean_rank = mean(profiling$Ranking_Uni_Asal, na.rm = TRUE)
+mean_motl = mean(admisi$MOT_LETTER, na.rm = TRUE)
+mean_koml = mean(admisi$REKOM_LETTER, na.rm = TRUE)
 
 # Mengganti nilai NA dengan mean
-newdata$Ranking_Uni_Asal[is.na(newdata$Ranking_Uni_Asal)] = mean_rank
-newdata$MOT_LETTER[is.na(newdata$MOT_LETTER)] = mean_motl
-newdata$REKOM_LETTER[is.na(newdata$REKOM_LETTER)] = mean_koml
+profiling$Ranking_Uni_Asal[is.na(profiling$Ranking_Uni_Asal)] = mean_rank
+admisi$MOT_LETTER[is.na(admisi$MOT_LETTER)] = mean_motl
+admisi$REKOM_LETTER[is.na(admisi$REKOM_LETTER)] = mean_koml
 
-str(newdata)
+str(admisi)
+str(profiling)
 
 ```
 
 
-## DATA PREPROCESSING 2: HANDLING DUPLICATED DATA
+## DATA PREPROCESSING 2A: HANDLING DUPLICATED DATA ADMISI
 ```{R}
 
 # Cek Data Duplikat
-cek = get_dupes(newdata)
-cek
+cek_admisi = get_dupes(admisi)
+cek_admisi
 
 # Mempertahankan satu baris dari setiap kelompok duplikat
-newdata_unique = distinct(newdata, .keep_all = TRUE)
+newdata_admisi = distinct(admisi, .keep_all = TRUE)
 
 ```
 
 
-## DATA PREPROCESSING 3: HANDLING OUTLIER
+## DATA PREPROCESSING 2B: HANDLING DUPLICATED DATA PROFILING
+```{r}
+
+# Cek Data Duplikat
+cek_profiling = get_dupes(profiling)
+cek_profiling
+
+# Mempertahankan satu baris dari setiap kelompok duplikat
+newdata_profiling = distinct(profiling, .keep_all = TRUE)
+
+```
+
+
+## DATA PREPROCESSING 3A: HANDLING OUTLIER ADMISI
 
 ```{r}
 
 # Loop untuk menampilkan boxplot satu per satu untuk variabel numerik
-for (col in names(newdata_unique)) {
-  if (is.numeric(newdata_unique[[col]])) {
-    boxplot(newdata_unique[[col]], main = col)
+for (col in names(newdata_admisi)) {
+  if (is.numeric(newdata_admisi[[col]])) {
+    boxplot(newdata_admisi[[col]], main = col)
   }
 }
 
 # Menghapus Outliers
-IQR_ipk = IQR(newdata_unique$IPK)
-upfen_ipk = quantile(newdata_unique$IPK, 0.75) + 1.5 * IQR_ipk
+IQR_koml = IQR(newdata_admisi$REKOM_LETTER)
+lowfen_koml = quantile(newdata_admisi$REKOM_LETTER, 0.25) - 1.5 * IQR_koml
 
-IQR_koml = IQR(newdata_unique$REKOM_LETTER)
-lowfen_koml = quantile(newdata_unique$REKOM_LETTER, 0.25) - 1.5 * IQR_koml
-
-clean_newdata = subset(newdata_unique, newdata_unique$IPK <= upfen_ipk 
-                       & newdata_unique$REKOM_LETTER >= lowfen_koml)
+clean_admisi = subset(newdata_admisi, REKOM_LETTER >= lowfen_koml)
 
 # Mengecek apakah masih terdapat outliers
-for (col in names(clean_newdata)) {
-  if (is.numeric(clean_newdata[[col]])) {
-    boxplot(clean_newdata[[col]], main = col)
+for (col in names(clean_admisi)) {
+  if (is.numeric(clean_admisi[[col]])) {
+    boxplot(clean_admisi[[col]], main = col)
   }
 }
 
+```
 
+
+
+## DATA PREPROCESSING 3B: HANDLING OUTLIER PROFILING
+
+```{r}
+
+# Loop untuk menampilkan boxplot satu per satu untuk variabel numerik
+for (col in names(newdata_profiling)) {
+  if (is.numeric(newdata_profiling[[col]])) {
+    boxplot(newdata_profiling[[col]], main = col)
+  }
+}
+
+# Menghapus Outliers
+IQR_ipk = IQR(newdata_profiling$IPK)
+upfen_ipk = quantile(newdata_profiling$IPK, 0.75) + 1.5 * IQR_ipk
+
+clean_profiling = subset(newdata_profiling, IPK <= upfen_ipk)
+
+# Mengecek apakah masih terdapat outliers
+for (col in names(clean_profiling)) {
+  if (is.numeric(clean_profiling[[col]])) {
+    boxplot(clean_profiling[[col]], main = col)
+  }
+}
 
 ```
 
+
+## MERGE DATASET
+```{r}
+
+# Menggabungkan dataset berdasarkan kolom ID
+newdata = merge(clean_profiling, clean_admisi, by = "ID")
+newdata
+
+```
 
 
 ## FEATURE SELECTION
 ```{r}
 
 control = trainControl(method="repeatedcv", number=10, repeats=3)
-model = train(LULUS ~ ., data = clean_newdata[, setdiff(names(clean_newdata), "NAMA")], method = "lvq", preProcess = "scale", trControl = control)
+model = train(LULUS ~ ., data = newdata[, setdiff(names(newdata), "NAMA")], method = "lvq", preProcess = "scale", trControl = control)
 
 # Estimasi Feature yang Penting
 importance = varImp(model, scale=FALSE)
@@ -141,7 +198,7 @@ plot(importance)
 ```{r}
 # Subset data dengan feature yang dipilih
 selected_features <- c("IPK", "RISET", "GRE", "TOEFL", "REKOM_LETTER", "MOT_LETTER", "JENIS_KEL", "USIA")
-selected_data <- clean_newdata[, c("LULUS", selected_features)]
+selected_data <- newdata[, c("LULUS", selected_features)]
 
 # Convert categorical variables to factors
 selected_data$JENIS_KEL <- as.factor(selected_data$JENIS_KEL)
@@ -198,27 +255,33 @@ print(paste("SVM Precision:", precision_svm))
 ## Model 3 (LR)
 ```{r}
 
-# Model Training - Logistics Regression (LR)
-lr_model <- glm(LULUS ~ ., data = train_data, family = "binomial")
-summary(lr_model)
+# Model Training - Logistic Regression (LR)
+lr_model = glm(LULUS ~ ., data = train_data, family = "binomial")
 
 # Model Prediction on the test set
-predictions_lr <- lr_model %>% predict(test_data, type = "response")
-predictions_lr
+predictions_lr = predict(lr_model, newdata = test_data, type = "response")
+
 
 # Convert predicted probabilities to class labels
-predicted_classes_lr <- ifelse(predictions_lr > 0.5, "Lulus", "Tidak Lulus")
-predicted_classes_lr
+predicted_classes_lr = ifelse(predictions_lr > 0.5, "Lulus", "Tidak Lulus")
+predicted_classes_lr = as.factor(predicted_classes_lr)
 
 # Evaluate the model
-conf_matrix_lr <- confusionMatrix(predicted_classes_lr, test_data$LULUS)
-accuracy_lr <- conf_matrix_lr$overall["Accuracy"]
-precision_lr <- conf_matrix_lr$byClass[["Pos Pred Value"]]
+conf_matrix_lr = confusionMatrix(data=predicted_classes_lr, 
+  reference=test_data$LULUS)
+
+#conf_matrix_lr <- confusionMatrix(factor(predicted_classes_lr), test_data$LULUS)
+accuracy_lr = conf_matrix_lr$overall["Accuracy"]
+precision_lr = conf_matrix_lr$byClass[["Pos Pred Value"]]
 
 # Display evaluation metrics for LR
-print(paste("Logistics Regression  Accuracy:", accuracy_lr))
-print(paste("Logistics Regression Precision:", precision_lr))
+print(paste("LR Accuracy:", accuracy_lr))
+print(paste("LR Precision:", precision_lr))
+
+
 ```
+
+
 
 # #shiny sementara
 ```{r}
