@@ -19,8 +19,13 @@ library(randomForest)
 library(e1071)
 library(janitor)
 library(shiny)
+library(class)
+library(gbm)
+library(neuralnet)
+library(pROC)
+library(rpart)
+library(rpart.plot)
 ```
-
 
 ## LOADING DATASET
 ```{r}
@@ -221,6 +226,10 @@ rf_model <- randomForest(LULUS ~ ., data = train_data)
 # Model Prediction on the test set
 predictions <- predict(rf_model, newdata = test_data)
 
+# Calculate AUC and plot ROC
+roc_curve <- roc(test_data$LULUS, as.numeric(predictions))
+auc_value <- auc(roc_curve)
+
 # Evaluate the model
 conf_matrix <- confusionMatrix(predictions, test_data$LULUS)
 accuracy <- conf_matrix$overall["Accuracy"]
@@ -229,28 +238,40 @@ precision <- conf_matrix$byClass[["Pos Pred Value"]]
 # Display evaluation metrics
 print(paste("Accuracy:", accuracy))
 print(paste("Precision:", precision))
+print(paste("AUC:", auc_value))
 
-
+# Plot ROC curve
+plot(roc_curve, main = "ROC Curve for Random Forest", col = "blue", lwd = 2)
 ```
 
 ## MODEL 2 (SVM)
 ```{r}
 # Model Training - Support Vector Machine (SVM)
-svm_model <- svm(LULUS ~ ., data = train_data)
+svm_model <- svm(LULUS ~ ., data = train_data, probability = TRUE)
 
 # Model Prediction on the test set
-predictions_svm <- predict(svm_model, newdata = test_data)
+predictions_svm <- predict(svm_model, newdata = test_data, probability = TRUE)
+
+# Extracting probability of positive class for AUC calculation
+svm_probabilities <- attr(predictions_svm, "probabilities")[, 2]
 
 # Evaluate the model
 conf_matrix_svm <- confusionMatrix(predictions_svm, test_data$LULUS)
 accuracy_svm <- conf_matrix_svm$overall["Accuracy"]
 precision_svm <- conf_matrix_svm$byClass[["Pos Pred Value"]]
 
+# Calculate AUC and plot ROC
+roc_curve_svm <- roc(test_data$LULUS, svm_probabilities)
+auc_value_svm <- auc(roc_curve_svm)
+
 # Display evaluation metrics for SVM
 print(paste("SVM Accuracy:", accuracy_svm))
 print(paste("SVM Precision:", precision_svm))
-```
+print(paste("SVM AUC:", auc_value_svm))
 
+# Plot ROC curve
+plot(roc_curve_svm, main = "ROC Curve for SVM", col = "blue", lwd = 2)
+```
 
 ## Model 3 (LR)
 ```{r}
@@ -279,8 +300,57 @@ print(paste("LR Precision:", precision_lr))
 
 
 ```
-level(predicted_classes_lr)
+## Model 4 (GBM)
+```{r}
 
+# Convert "Lulus" to 1 and "Tidak Lulus" to 0
+train_data_gbm <- train_data %>%
+  mutate(LULUS = ifelse(LULUS == "Lulus", 1, 0))
+
+# Model Training - Gradient Boosting Machine (GBM)
+gbm_model <- gbm(LULUS ~ ., data = train_data_gbm, distribution = "bernoulli", n.trees = 100, interaction.depth = 3)
+
+# Model Prediction on the test set
+predictions_gbm <- predict(gbm_model, newdata = test_data, type = "response", n.trees = 100)
+
+# Convert predicted probabilities to class labels
+predicted_classes_gbm <- ifelse(predictions_gbm > 0.5, "Lulus", "Tidak Lulus")
+
+# Evaluate the model
+conf_matrix_gbm <- confusionMatrix(factor(predicted_classes_gbm), test_data$LULUS)
+accuracy_gbm <- conf_matrix_gbm$overall["Accuracy"]
+precision_gbm <- conf_matrix_gbm$byClass[["Pos Pred Value"]]
+
+# Display evaluation metrics for GBM
+print(paste("GBM Accuracy:", accuracy_gbm))
+print(paste("GBM Precision:", precision_gbm))
+```
+
+## MODEL 5 (DT)
+```{r}
+# Convert "Lulus" to 1 and "Tidak Lulus" to 0
+train_data_dt <- train_data %>%
+  mutate(LULUS = ifelse(LULUS == "Lulus", 1, 0))
+
+# Model Training - Decision Tree (DT)
+dt_model <- rpart(LULUS ~ ., data = train_data_dt, method = "class")
+rpart.plot(dt_model, extra=106)
+
+# Model Prediction on the test set
+predictions_dt <- predict(dt_model, newdata = test_data, type = "class")
+
+# Convert predicted class to labels
+predicted_classes_dt <- ifelse(predictions_dt == 1, "Lulus", "Tidak Lulus")
+
+# Evaluate the model
+conf_matrix_dt <- confusionMatrix(factor(predicted_classes_dt), test_data$LULUS)
+accuracy_dt <- conf_matrix_dt$overall["Accuracy"]
+precision_dt <- conf_matrix_dt$byClass[["Pos Pred Value"]]
+
+# Display evaluation metrics for Decision Tree
+print(paste("Decision Tree Accuracy:", accuracy_dt))
+print(paste("Decision Tree Precision:", precision_dt))
+```
 
 # #shiny sementara
 ```{r}
