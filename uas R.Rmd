@@ -376,6 +376,50 @@ print(paste("Decision Tree AUC:", auc_value_dt))
 plot(roc_curve_dt, main = "ROC Curve for Decision Tree", col = "blue", lwd = 2)
 ```
 
+## MODEL 6 : KNN
+```{r}
+# Preprocess the data
+preProcValues <- preProcess(train_data_binary, method = c("center", "scale"))
+trainTransformed <- predict(preProcValues, train_data_binary)
+testTransformed <- predict(preProcValues, test_data_binary)
+
+# Train the model
+knnModel <- train(
+  LULUS ~ ., 
+  data = trainTransformed, 
+  method = "knn", 
+  trControl = trainControl(method = "cv"), 
+  tuneGrid = data.frame(k = c(3, 5, 7)),
+  metric = "Precision"  # Specify precision as the metric for tuning
+)
+
+# Extract best k from the tuned model
+best_k <- knnModel$bestTune$k
+
+# Train K-Nearest Neighbors with the best k
+best_model <- knn3(
+  LULUS ~ .,
+  data = trainTransformed,
+  k = best_k
+)
+
+# Make predictions on the test set
+predictions <- predict(best_model, testTransformed, type = "prob")
+
+# Extract probability of the positive class for AUC calculation
+probabilities_knn <- predictions[, 2]
+
+# Calculate ROC curve
+roc_curve_knn <- roc(test_data_binary$LULUS, probabilities_knn)
+
+# Calculate AUC
+auc_value_knn <- auc(roc_curve_knn)
+
+# Display evaluation metrics for K-Nearest Neighbors
+print(paste("K-Nearest Neighbors AUC:", auc_value_knn))
+
+```
+
 # #shiny sementara
 ```{r}
 ui = fluidPage(
