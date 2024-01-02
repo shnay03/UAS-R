@@ -18,6 +18,7 @@ library(Metrics)
 library(randomForest)
 library(e1071)
 library(janitor)
+library(shiny)
 ```
 
 
@@ -191,4 +192,70 @@ precision_svm <- conf_matrix_svm$byClass[["Pos Pred Value"]]
 # Display evaluation metrics for SVM
 print(paste("SVM Accuracy:", accuracy_svm))
 print(paste("SVM Precision:", precision_svm))
+```
+
+
+## Model 3 (LR)
+```{r}
+
+# Model Training - Logistics Regression (LR)
+lr_model <- glm(LULUS ~ ., data = train_data, family = "binomial")
+summary(lr_model)
+
+# Model Prediction on the test set
+predictions_lr <- lr_model %>% predict(test_data, type = "response")
+predictions_lr
+
+# Convert predicted probabilities to class labels
+predicted_classes_lr <- ifelse(predictions_lr > 0.5, "Lulus", "Tidak Lulus")
+predicted_classes_lr
+
+# Evaluate the model
+conf_matrix_lr <- confusionMatrix(predicted_classes_lr, test_data$LULUS)
+accuracy_lr <- conf_matrix_lr$overall["Accuracy"]
+precision_lr <- conf_matrix_lr$byClass[["Pos Pred Value"]]
+
+# Display evaluation metrics for LR
+print(paste("Logistics Regression  Accuracy:", accuracy_lr))
+print(paste("Logistics Regression Precision:", precision_lr))
+```
+
+##shiny sementara
+```{r}
+ui = fluidPage(
+  titlePanel("Judul"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput('JENIS_KEL', 'Pilih Jenis Kelamin Anda', choices = c('Perempuan', 'Laki-Laki'), 
+                  selected = 'Perempuan'),
+      sliderInput('USIA', 'Pilih Usia Anda', 
+                  min = 1,
+                  max = 50,
+                  value = 0),
+      numericInput('IPK','Masukan IPK Anda : ', value=0),
+      numericInput('TOEFL','Masukan Skor TOEFL Anda : ', value=0),
+      numericInput('GRE','Masukan Skor Gre Anda : ', value=0),
+      numericInput('REKOM_LETTER','Masukan Skor REKOM_LETTER Anda : ', value=0),
+      numericInput('MOT_LETTER','Masukan Skor MOT_LETTER Anda : ', value=0),
+      selectInput('RISET', 'Apakah Anda Melakukan Riset Sebelumnya', choices = c('Ya', 'Tidak'), 
+                  selected = 'Ya'),
+      actionButton('hitung', 'Prediksi Kelulusan')
+    ), 
+    mainPanel(
+      textOutput('hasil')
+    )
+  )
+)
+
+server = function(input, output){
+  observeEvent(input$hitung, {
+    predictions <- predict(model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
+                                                     IPK=input$IPK, TOEFL=input$TOEFL, GRE=input$GRE, 
+                                                     REKOM_LETTER=input$REKOM_LETTER, MOT_LETTER=input$MOT_LETTER,
+                                                     RISET=input$RISET))
+    output$hasil <- renderText({paste('Hasil Prediksi Kelulusan adalah', predictions)})
+    })
+}
+
+shinyApp(ui=ui, server=server)
 ```
