@@ -469,7 +469,7 @@ plot(roc_curve_knn, main = "ROC Curve for k-NN", col = "blue", lwd = 2)
 
 
 
-# #shiny 
+## SHINY
 ```{r}
 
 jenis_kel_levels = levels(test_data$JENIS_KEL)
@@ -477,8 +477,8 @@ riset_levels = levels(test_data$RISET)
 
 ui = fluidPage(
   titlePanel("Judul"),
-  sidebarLayout(
-    sidebarPanel(
+  fluidRow(
+    column(4, offset = 4,
       selectInput('JENIS_KEL', 'Pilih Jenis Kelamin Anda', 
                   choices = jenis_kel_levels, 
                   selected = jenis_kel_levels[1]),
@@ -513,14 +513,14 @@ ui = fluidPage(
 server = function(input, output){
   observeEvent(input$hitung, {
     
-    predictions <- predict(best_model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
+    predictions <- predict(lr_model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
                                                      IPK=input$IPK, TOEFL=input$TOEFL, GRE=input$GRE, 
                                                      REKOM_LETTER=input$REKOM_LETTER,
                                                      MOT_LETTER=input$MOT_LETTER,
                                                      RISET=input$RISET))
     
      # Menentukan label output berdasarkan prediksi
-    output_label <- ifelse(predictions == "LULUS", "LULUS", "TIDAK LULUS")
+    output_label <- ifelse(predictions > 0.5, "SELAMAT ANDA LULUS", "MOHON MAAF, ANDA BELUM LULUS")
     
     output$hasil <- renderText({paste('Hasil Prediksi Kelulusan adalah', output_label)})
     })
