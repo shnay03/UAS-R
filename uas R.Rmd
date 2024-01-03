@@ -460,7 +460,14 @@ plot(roc_curve_knn, main = "ROC Curve for k-NN", col = "blue", lwd = 2)
 # REKOM_LETTER dan MOT_LETTER : Skor surat rekomendasi dan motivation letter memberikan wawasan tentang kemampuan interpersonal dan motivasi calon mahasiswa. 
 # JENIS_KEL dan USIA : Jenis kelamin dan usia memberikan informasi tambahan tentang karakteristik pendaftar. Meskipun label ini tergantung dengan kebijakan masing-masing universitas. Tetapi tetap features ini membantu dalam memberikan korelasi dan peran dalam nilai yang dihasilkan dalam akurasi, presisi, dan AUC pada model.
 
-#Penggunaan SVM pada model
+# Penggunaan Logistic Regression
+# Model LR cocok digunakan dalam kasus binomial 
+# Dalam model ini juga digunakan Trade-off Threshold dimana dengan menentukan ambang batas. Dengan menggunakan ambang batas 0.5, kita membuat keputusan biner untuk menentukan kategori kelas. Nilai ambang batas dapat disesuaikan tergantung pada preferensi atau kebutuhan spesifik dalam menentukan seberapa tinggi probabilitas harus untuk dianggap sebagai kelas positif. Digunakan untuk memberikan label kelas berdasarkan kondisi tertentu. Jika nilai probabilitas prediksi lebih besar dari 0.5, maka siswa dianggap "Lulus", dan jika tidak, dianggap "Tidak Lulus".
+# Setelah membandingkan beberapa model, LR memiliki akurasi dan presisi yang sangat baik. Dengan Akuarasi 96.64% yang artinya model bisa memprediksi apakah seorang siswa bisa lulus atau tidak lulus dengan tingkat keakuratan tinggi. Kemudian, Presisi mencapai 93.10%, hal ini menunjukkan bahwa dari semua prediksi yang dikategorikan model, sekitar 93.10% diantaranya benar-benar merupakan kasusu siswa yang lulus. Presisi tinggi menyimpulkan dan mengindikasikan bahwa model cenderung memberikan prediksi positif yang besar.
+# AUC yang tinggi dengan nilai 0.9964. AUC yang mendekati 1 menunjukkan bahwa model mempunyai kemampuan yang sangat baik dalam membedakan antara kelas "LULUS" dan "TIDAK LULUS". (Sebenarnya, AUC yang nilainya diatas 0.5 sudah bagus tetapi akan sangat baik bila mendekati 1)
+# Berdasarkan analisis ROC Curve, Grafik ROC Curve menunjukkan bahwa model Logistic Regression memiliki tingkat True Positive Rate (Sensitivity) yang tinggi dan tingkat False Positive Rate yang rendah. Ini menggambarkan kemampuan model dalam mengidentifikasi siswa yang lulus tanpa terlalu banyak membuat kesalahan memprediksi siswa yang sebenarnya tidak lulus.
+
+
 
 # #shiny 
 ```{r}
