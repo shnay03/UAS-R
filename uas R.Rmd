@@ -19,6 +19,7 @@ library(randomForest)
 library(e1071)
 library(janitor)
 library(shiny)
+library(shinythemes)
 library(class)
 library(gbm)
 library(pROC)
@@ -472,59 +473,91 @@ plot(roc_curve_knn, main = "ROC Curve for k-NN", col = "blue", lwd = 2)
 
 ## SHINY
 ```{r}
+jenis_kel_levels <- levels(test_data$JENIS_KEL)
+riset_levels <- levels(test_data$RISET)
 
-jenis_kel_levels = levels(test_data$JENIS_KEL)
-riset_levels = levels(test_data$RISET)
-
-ui = fluidPage(
-  titlePanel(HTML('<div style="text-align: center;">IEDU PREDICTION TOOL</div>')),
-  HTML('<p style="text-align: center;">Dibuat oleh Kelompok 1</p>'),
+ui <- fluidPage(
+  theme = shinytheme("superhero"),
+  tags$head(
+    tags$style(
+      HTML("
+        .container-fluid {
+          border-radius: 15px;  /* Set the radius as needed */
+          overflow: hidden;
+        }
+      ")
+    )
+  ),
+  titlePanel(HTML('<div style="text-align: center; color: white;">IEDU PREDICTION TOOL</div>')),
+  HTML('<p style="text-align: center; color: white;">Dibuat oleh Kelompok 1</p>'),
   br(),
   fluidRow(
-    column(4, offset = 4, align = "center",
-      textInput('NAMA', 'Masukkan Nama Anda'),
-      selectInput('JENIS_KEL', 'Pilih Jenis Kelamin Anda', 
-                  choices = jenis_kel_levels, 
-                  selected = jenis_kel_levels[1]),
-      numericInput('USIA', 'Pilih Usia Anda', 
-                  min = 10,
-                  max = 50,
-                  value = 20),
-      numericInput('IPK', 'Masukkan IPK Anda : ', 
-                   value = 3, 
-                   min = 1, 
-                   max = 4, 
-                   step = 0.01),
-      numericInput('TOEFL','Masukan Skor TOEFL Anda : ', 
-                   value=100, 
-                   min = 50, 
-                   max = 200),
-      numericInput('GRE','Masukan Skor Gre Anda : ', 
-                   value=300, 
-                   min = 260, 
-                   max = 340),
-      numericInput('REKOM_LETTER','Masukan Skor REKOM_LETTER Anda : ', 
-                   value = 4, 
-                   min = 1, 
-                   max = 5, 
-                   step = 0.05),
-      numericInput('MOT_LETTER','Masukan Skor MOT_LETTER Anda : ', 
-                   value = 4, 
-                   min = 1, 
-                   max = 5, 
-                   step = 0.05),
-      selectInput('RISET', 'Apakah Anda Melakukan Riset Sebelumnya', 
-                  choices = riset_levels, 
-                  selected = riset_levels[1]),
+    column(4, align = "center",
+      img(src = "https://i.pinimg.com/564x/cd/71/07/cd710729ea3e0c9059d49025459b4087.jpg", width = 300,
+          height = 400, class = "rounded-image"),
       br(),
-      actionButton('hitung', 'Prediksi Kelulusan')
+      br(),
+      img(src = "https://i.pinimg.com/564x/a2/bc/97/a2bc974da36f6345334dde79cf77287e.jpg", width = 300,
+              height = 300, class = "rounded-image")
     ),
-    mainPanel(
-      textOutput('hasil')
+    column(8,
+      fluidRow(
+        column(6, align = "center", 
+          textInput('NAMA', 'Masukkan Nama Anda'),
+          selectInput('JENIS_KEL', 'Pilih Jenis Kelamin Anda', 
+                      choices = jenis_kel_levels, 
+                      selected = jenis_kel_levels[1]),
+          numericInput('USIA', 'Pilih Usia Anda', 
+                       min = 10,
+                       max = 50,
+                       value = 20),
+          numericInput('IPK', 'Masukkan IPK Anda : ', 
+                       value = 3, 
+                       min = 1, 
+                       max = 4, 
+                       step = 0.01),
+          numericInput('TOEFL','Masukan Skor TOEFL Anda : ', 
+                       value=100, 
+                       min = 50, 
+                       max = 200),
+          numericInput('GRE','Masukan Skor Gre Anda : ', 
+                       value=300, 
+                       min = 260, 
+                       max = 340),
+          numericInput('REKOM_LETTER','Masukan Skor REKOM_LETTER Anda : ', 
+                       value = 4, 
+                       min = 1, 
+                       max = 5, 
+                       step = 0.05),
+          numericInput('MOT_LETTER','Masukan Skor MOT_LETTER Anda : ', 
+                       value = 4, 
+                       min = 1, 
+                       max = 5, 
+                       step = 0.05),
+          selectInput('RISET', 'Apakah Anda Melakukan Riset Sebelumnya', 
+                      choices = riset_levels, 
+                      selected = riset_levels[1]),
+          actionButton('hitung', 'Prediksi Kelulusan', style = "margin-top: 20px;")  
+        ),
+        column(6, align = "center", 
+          
+          br(),
+          img(src = "https://i.pinimg.com/564x/1f/10/d2/1f10d2f3841a9463f82ce425a8df861f.jpg", width = 300,
+              height = 300, class = "rounded-image"),
+          br(),
+          br(),
+          img(src = "https://i.pinimg.com/564x/6a/37/f6/6a37f6866ec3d712ab7cbb8a331a2323.jpg", width = 300,
+              height = 400, class = "rounded-image"),
+          br(),
+        )
+      )
     )
-  )
+  ),
+  mainPanel(
+    textOutput('hasil')
+  ),
+  id = "iedu-tool"  
 )
-
 server = function(input, output, session) {
   observeEvent(input$hitung, {
     predictions <- predict(lr_model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
