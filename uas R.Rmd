@@ -476,9 +476,12 @@ jenis_kel_levels = levels(test_data$JENIS_KEL)
 riset_levels = levels(test_data$RISET)
 
 ui = fluidPage(
-  titlePanel("Judul"),
+  titlePanel(HTML('<div style="text-align: center;">IEDU PREDICTION TOOL</div>')),
+  HTML('<p style="text-align: center;">Dibuat oleh Kelompok 1</p>'),
+  br(),
   fluidRow(
-    column(4, offset = 4,
+    column(4, offset = 4, align = "center",
+      textInput('NAMA', 'Masukkan Nama Anda'),
       selectInput('JENIS_KEL', 'Pilih Jenis Kelamin Anda', 
                   choices = jenis_kel_levels, 
                   selected = jenis_kel_levels[1]),
@@ -486,9 +489,19 @@ ui = fluidPage(
                   min = 10,
                   max = 50,
                   value = 20),
-      numericInput('IPK', 'Masukkan IPK Anda : ', value = 3, min = 1, max = 4, step = 0.01),
-      numericInput('TOEFL','Masukan Skor TOEFL Anda : ', value=100, min = 50, max = 200),
-      numericInput('GRE','Masukan Skor Gre Anda : ', value=300, min = 260, max = 340),
+      numericInput('IPK', 'Masukkan IPK Anda : ', 
+                   value = 3, 
+                   min = 1, 
+                   max = 4, 
+                   step = 0.01),
+      numericInput('TOEFL','Masukan Skor TOEFL Anda : ', 
+                   value=100, 
+                   min = 50, 
+                   max = 200),
+      numericInput('GRE','Masukan Skor Gre Anda : ', 
+                   value=300, 
+                   min = 260, 
+                   max = 340),
       numericInput('REKOM_LETTER','Masukan Skor REKOM_LETTER Anda : ', 
                    value = 3, 
                    min = 1, 
@@ -502,29 +515,41 @@ ui = fluidPage(
       selectInput('RISET', 'Apakah Anda Melakukan Riset Sebelumnya', 
                   choices = riset_levels, 
                   selected = riset_levels[1]),
+      br()
       actionButton('hitung', 'Prediksi Kelulusan')
-    ), 
+    ),
     mainPanel(
       textOutput('hasil')
     )
   )
 )
 
-server = function(input, output){
+server = function(input, output, session) {
   observeEvent(input$hitung, {
-    
     predictions <- predict(lr_model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
                                                      IPK=input$IPK, TOEFL=input$TOEFL, GRE=input$GRE, 
                                                      REKOM_LETTER=input$REKOM_LETTER,
                                                      MOT_LETTER=input$MOT_LETTER,
                                                      RISET=input$RISET))
     
-     # Menentukan label output berdasarkan prediksi
-    output_label <- ifelse(predictions > 0.5, "SELAMAT ANDA LULUS", "MOHON MAAF, ANDA BELUM LULUS")
-    
-    output$hasil <- renderText({paste('Hasil Prediksi Kelulusan adalah', output_label)})
-    })
+   # Menentukan label output berdasarkan prediksi
+  output_label <- ifelse(predictions > 0.5, paste("SELAMAT", input$NAMA, ", ANDA LULUS"), 
+                       paste("MOHON MAAF", input$NAMA, ", ANDA BELUM LULUS"))
+
+  # Menentukan warna latar belakang berdasarkan hasil prediksi
+  background_color <- ifelse(predictions > 0.5, "green", "red")
+
+  # Menyiapkan HTML dengan inline CSS untuk mengatur warna latar belakang dan menengahkan teks
+  hasil_html <- sprintf('<div style="background-color:%s; padding:20px; border-radius: 10px; text-align: center;">%s</div>', background_color, output_label)
+
+  # Menampilkan hasil di halaman baru dengan HTML
+  showModal(modalDialog(
+    HTML(hasil_html),
+    easyClose = TRUE,
+    footer = NULL
+    ))
+  })
 }
 
-shinyApp(ui=ui, server=server)
+shinyApp(ui = ui, server = server)
 ```
