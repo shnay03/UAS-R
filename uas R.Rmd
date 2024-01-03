@@ -432,6 +432,38 @@ plot(roc_curve_knn, main = "ROC Curve for k-NN", col = "blue", lwd = 2)
 
 
 ```
+## HASIL NARASI
+
+#Presisi dalam konteks ini merujuk pada proporsi dari prediksi positif yang benar (True Positive) dibandingkan dengan total prediksi positif (True Positive + False Positive). Dalam kata lain, presisi mengukur sejauh mana prediksi positif yang diberikan oleh model benar atau relevan. Dalam kasus ini, IEDU ingin memastikan bahwa ketika alat prediktif memberikan saran untuk melanjutkan aplikasi MBA di UoU, prediksi tersebut memiliki tingkat ketepatan yang tinggi, minimal 85%.
+
+# Confusion matrix adalah alat evaluasi kinerja model yang menyajikan hasil prediksi dalam empat kategori: True Positive (TP), False Positive (FP), True Negative (TN), dan False Negative (FN).
+#True Positive (TP):
+#Definisi: Jumlah observasi yang sebenarnya positif dan diprediksi positif dengan benar.
+#Konteks: Jumlah calon mahasiswa yang benar-benar berhasil di UoU dan diprediksi dengan benar oleh model.
+
+#False Positive (FP):
+#Definisi: Jumlah observasi yang sebenarnya negatif tetapi diprediksi positif.
+#Konteks: Jumlah calon mahasiswa yang sebenarnya tidak berhasil di UoU, tetapi model memprediksi bahwa mereka berhasil.
+
+#True Negative (TN):
+#Definisi: Jumlah observasi yang sebenarnya negatif dan diprediksi negatif dengan benar.
+#Konteks: Jumlah calon mahasiswa yang tidak berhasil di UoU dan model dengan benar memprediksi bahwa mereka tidak berhasil.
+
+#False Negative (FN):
+#Definisi: Jumlah observasi yang sebenarnya positif tetapi diprediksi negatif.
+#Konteks: Jumlah calon mahasiswa yang sebenarnya berhasil di UoU, tetapi model gagal memprediksi keberhasilan mereka.
+
+#Presisi memberikan gambaran seberapa akurat model dalam mengidentifikasi calon mahasiswa yang sebenarnya berhasil di UoU dari total calon yang diprediksi berhasil. Dalam konteks ini, IEDU menetapkan target presisi sebesar 85%, yang berarti ingin meminimalkan jumlah prediksi positif yang salah
+
+#Features yang diambil yaitu IPK, RISET, GRE, TOEFL, REKOM_LETTER, MOT_LETTER, JENIS_KEL, USIA
+
+# IPK : bisa menjadi indikator kuat untuk kinerja akademis calon mahasiswa. IPK cenderung berkorelasi dengan keberhasilan studi lanjutan.
+# RISET : RISET atau pengalaman penelitian dapat mencerminkan dedikasi dan keterampilan penelitian calon mahasiswa. Terutama jika program MBA di UoU memiliki fokus pada aspek riset.
+# GRE dan TOEFL : Skor GRE dan TOEFL bisa menjadi standart untuk melihat kemampuan akademis dan kemahiran berbahasa inggris calon mahasiswa. Keduanya dianggap penting dalam penilaian dan kelayakan penerimaan.
+# REKOM_LETTER dan MOT_LETTER : Skor surat rekomendasi dan motivation letter memberikan wawasan tentang kemampuan interpersonal dan motivasi calon mahasiswa. 
+# JENIS_KEL dan USIA : Jenis kelamin dan usia memberikan informasi tambahan tentang karakteristik pendaftar. Meskipun label ini tergantung dengan kebijakan masing-masing universitas. Tetapi tetap features ini membantu dalam memberikan korelasi dan peran dalam nilai yang dihasilkan dalam akurasi, presisi, dan AUC pada model.
+
+#Penggunaan SVM pada model
 
 # #shiny sementara
 ```{r}
