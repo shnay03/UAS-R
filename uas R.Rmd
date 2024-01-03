@@ -3,6 +3,7 @@ title: "uas R"
 author: "Kelompok 1"
 date: "2023-12-19"
 output: html_document
+repository : "https://github.com/shnay03/UAS-R.git"
 ---
 
 ## IMPORT LIBRARY
@@ -511,25 +512,25 @@ ui <- fluidPage(
                        min = 10,
                        max = 50,
                        value = 20),
-          numericInput('IPK', 'Masukkan IPK Anda : ', 
+          numericInput('IPK', 'Masukkan IPK Anda', 
                        value = 3, 
                        min = 1, 
                        max = 4, 
                        step = 0.01),
-          numericInput('TOEFL','Masukan Skor TOEFL Anda : ', 
+          numericInput('TOEFL','Masukan Skor TOEFL Anda', 
                        value=100, 
                        min = 50, 
                        max = 200),
-          numericInput('GRE','Masukan Skor Gre Anda : ', 
+          numericInput('GRE','Masukan Skor GRE Anda', 
                        value=300, 
                        min = 260, 
                        max = 340),
-          numericInput('REKOM_LETTER','Masukan Skor REKOM_LETTER Anda : ', 
+          numericInput('REKOM_LETTER','Masukan Skor RECOMMENDATION LETTER Anda', 
                        value = 4, 
                        min = 1, 
                        max = 5, 
                        step = 0.05),
-          numericInput('MOT_LETTER','Masukan Skor MOT_LETTER Anda : ', 
+          numericInput('MOT_LETTER','Masukan Skor MOTIVATION LETTER Anda', 
                        value = 4, 
                        min = 1, 
                        max = 5, 
