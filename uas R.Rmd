@@ -21,7 +21,6 @@ library(janitor)
 library(shiny)
 library(class)
 library(gbm)
-library(neuralnet)
 library(pROC)
 library(rpart)
 library(rpart.plot)
@@ -231,7 +230,7 @@ rf_model <- train(LULUS ~ .,
 predictions_rf <- predict(rf_model, newdata = test_data)
 
 # Calculate AUC and plot ROC
-roc_curve <- roc(test_data$LULUS, as.numeric(predictions))
+roc_curve <- roc(test_data$LULUS, as.numeric(predictions_rf))
 auc_value <- auc(roc_curve)
 
 # Evaluate the model
@@ -240,8 +239,8 @@ accuracy_rf <- conf_matrix$overall["Accuracy"]
 precision_rf <- conf_matrix$byClass[["Pos Pred Value"]]
 
 # Display evaluation metrics
-print(paste("Random Forest Accuracy:", accuracy))
-print(paste("Random Forest Precision:", precision))
+print(paste("Random Forest Accuracy:", accuracy_rf))
+print(paste("Random Forest Precision:", precision_rf))
 print(paste("Random Forest AUC:", auc_value))
 
 # Plot ROC curve
@@ -410,7 +409,7 @@ predictions_knn <- predict(best_model, testTransformed,type = "prob")
 probabilities_knn <- as.numeric(predictions_knn[, "Lulus"])
 
 # Calculate confusion matrix
-conf_matrix_knn <- confusionMatrix(predictions, testTransformed$LULUS)
+conf_matrix_knn <- confusionMatrix(factor(ifelse(probabilities_knn > 0.5, "Lulus", "Tidak Lulus")), testTransformed$LULUS)
 accuracy_knn <- conf_matrix_knn$overall["Accuracy"]
 precision_knn <- conf_matrix_knn$byClass[["Pos Pred Value"]]
 
@@ -507,7 +506,7 @@ ui = fluidPage(
 server = function(input, output){
   observeEvent(input$hitung, {
     
-    predictions <- predict(svm_model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
+    predictions <- predict(best_model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
                                                      IPK=input$IPK, TOEFL=input$TOEFL, GRE=input$GRE, 
                                                      REKOM_LETTER=input$REKOM_LETTER,
                                                      MOT_LETTER=input$MOT_LETTER,
