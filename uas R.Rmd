@@ -42,6 +42,7 @@ profiling
 ## DATA PREPROCESSING 1: HANDLING MISSING VALUE
 ```{r}
 
+# Cek Nilai NA
 cek_NA_GRE = sum(is.na(admisi$GRE))
 cek_NA_TOEFL = sum(is.na(admisi$TOEFL))
 cek_NA_MLETTER = sum(is.na(admisi$MOT_LETTER))
@@ -61,6 +62,7 @@ modus_lulus = names(sort(table(admisi$LULUS), decreasing = TRUE)[1])
 # Mengganti nilai NA dengan modus
 profiling$JENIS_KEL[is.na(profiling$JENIS_KEL)] = modus_jenkel
 profiling$RISET[is.na(profiling$RISET)] = modus_riset
+profiling$RISET[profiling$RISET == ''] = modus_riset
 admisi$LULUS[is.na(admisi$LULUS)] = modus_lulus
 
 # Transformasi faktor
@@ -226,21 +228,21 @@ rf_model <- train(LULUS ~ .,
                          trControl = trainControl(method = "cv", number = 5))
 
 # Model Prediction on the test set
-predictions <- predict(rf_model, newdata = test_data)
+predictions_rf <- predict(rf_model, newdata = test_data)
 
 # Calculate AUC and plot ROC
 roc_curve <- roc(test_data$LULUS, as.numeric(predictions))
 auc_value <- auc(roc_curve)
 
 # Evaluate the model
-conf_matrix <- confusionMatrix(predictions, test_data$LULUS)
-accuracy <- conf_matrix$overall["Accuracy"]
-precision <- conf_matrix$byClass[["Pos Pred Value"]]
+conf_matrix <- confusionMatrix(predictions_rf, test_data$LULUS)
+accuracy_rf <- conf_matrix$overall["Accuracy"]
+precision_rf <- conf_matrix$byClass[["Pos Pred Value"]]
 
 # Display evaluation metrics
-print(paste("Accuracy:", accuracy))
-print(paste("Precision:", precision))
-print(paste("AUC:", auc_value))
+print(paste("Random Forest Accuracy:", accuracy))
+print(paste("Random Forest Precision:", precision))
+print(paste("Random Forest AUC:", auc_value))
 
 # Plot ROC curve
 plot(roc_curve, main = "ROC Curve for Random Forest", col = "blue", lwd = 2)
@@ -404,17 +406,13 @@ best_model<- knn3(
                  )
 
 # Make predictions on the test set
-predictions <- predict(best_model, testTransformed,type = "class")
+predictions_knn <- predict(best_model, testTransformed,type = "prob")
 probabilities_knn <- as.numeric(predictions_knn[, "Lulus"])
 
 # Calculate confusion matrix
 conf_matrix_knn <- confusionMatrix(predictions, testTransformed$LULUS)
 accuracy_knn <- conf_matrix_knn$overall["Accuracy"]
 precision_knn <- conf_matrix_knn$byClass[["Pos Pred Value"]]
-
-# Display evaluation metrics for Decision Tree
-print(paste("K-Nearest Neighbors Accuracy:", accuracy_knn))
-print(paste("K-Nearest Neighbors Precision:", precision_knn))
 
 # Display evaluation metrics for k-NN
 print(paste("K-Nearest Neighbors Accuracy:", accuracy_knn))
@@ -433,25 +431,39 @@ plot(roc_curve_knn, main = "ROC Curve for k-NN", col = "blue", lwd = 2)
 
 ```
 
-# #shiny sementara
+# #shiny 
 ```{r}
+
+jenis_kel_levels = levels(test_data$JENIS_KEL)
+riset_levels = levels(test_data$RISET)
+
 ui = fluidPage(
   titlePanel("Judul"),
   sidebarLayout(
     sidebarPanel(
-      selectInput('JENIS_KEL', 'Pilih Jenis Kelamin Anda', choices = c('Perempuan', 'Laki-Laki'), 
-                  selected = 'Perempuan'),
-      sliderInput('USIA', 'Pilih Usia Anda', 
-                  min = 1,
+      selectInput('JENIS_KEL', 'Pilih Jenis Kelamin Anda', 
+                  choices = jenis_kel_levels, 
+                  selected = jenis_kel_levels[1]),
+      numericInput('USIA', 'Pilih Usia Anda', 
+                  min = 10,
                   max = 50,
-                  value = 0),
-      numericInput('IPK','Masukan IPK Anda : ', value=0),
-      numericInput('TOEFL','Masukan Skor TOEFL Anda : ', value=0),
-      numericInput('GRE','Masukan Skor Gre Anda : ', value=0),
-      numericInput('REKOM_LETTER','Masukan Skor REKOM_LETTER Anda : ', value=0),
-      numericInput('MOT_LETTER','Masukan Skor MOT_LETTER Anda : ', value=0),
-      selectInput('RISET', 'Apakah Anda Melakukan Riset Sebelumnya', choices = c('Ya', 'Tidak'), 
-                  selected = 'Ya'),
+                  value = 20),
+      numericInput('IPK', 'Masukkan IPK Anda : ', value = 3, min = 1, max = 4, step = 0.01),
+      numericInput('TOEFL','Masukan Skor TOEFL Anda : ', value=100, min = 50, max = 200),
+      numericInput('GRE','Masukan Skor Gre Anda : ', value=300, min = 260, max = 340),
+      numericInput('REKOM_LETTER','Masukan Skor REKOM_LETTER Anda : ', 
+                   value = 3, 
+                   min = 1, 
+                   max = 5, 
+                   step = 0.05),
+      numericInput('MOT_LETTER','Masukan Skor MOT_LETTER Anda : ', 
+                   value = 3, 
+                   min = 1, 
+                   max = 5, 
+                   step = 0.05),
+      selectInput('RISET', 'Apakah Anda Melakukan Riset Sebelumnya', 
+                  choices = riset_levels, 
+                  selected = riset_levels[1]),
       actionButton('hitung', 'Prediksi Kelulusan')
     ), 
     mainPanel(
@@ -462,11 +474,17 @@ ui = fluidPage(
 
 server = function(input, output){
   observeEvent(input$hitung, {
-    predictions <- predict(model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
+    
+    predictions <- predict(svm_model, newdata=data.frame(JENIS_KEL=input$JENIS_KEL, USIA=input$USIA, 
                                                      IPK=input$IPK, TOEFL=input$TOEFL, GRE=input$GRE, 
-                                                     REKOM_LETTER=input$REKOM_LETTER, MOT_LETTER=input$MOT_LETTER,
+                                                     REKOM_LETTER=input$REKOM_LETTER,
+                                                     MOT_LETTER=input$MOT_LETTER,
                                                      RISET=input$RISET))
-    output$hasil <- renderText({paste('Hasil Prediksi Kelulusan adalah', predictions)})
+    
+     # Menentukan label output berdasarkan prediksi
+    output_label <- ifelse(predictions == "LULUS", "LULUS", "TIDAK LULUS")
+    
+    output$hasil <- renderText({paste('Hasil Prediksi Kelulusan adalah', output_label)})
     })
 }
 
